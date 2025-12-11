@@ -1,6 +1,8 @@
 import os
 import sys
+from dotenv import load_dotenv
 from openai import OpenAI
+load_dotenv()
 
 
 from chatbot.tools.weather.weather_tool import get_weather
@@ -106,7 +108,7 @@ class OrchestratorAgent:
         )
 
         self.reset_register_flow()
-        
+
         return f"Kayıt tamamlandı: {response}"
     
     def reset_register_flow(self):
@@ -132,8 +134,7 @@ class OrchestratorAgent:
                 {"role": "user", "content": message}
             ]
         )
-
-        return response.choices[0].message["content"]
+        return response.choices[0].message.content
 
 
     def run(self, message: str):
