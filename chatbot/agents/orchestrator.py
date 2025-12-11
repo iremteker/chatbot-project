@@ -24,6 +24,18 @@ class OrchestratorAgent:
         else:
             self.client = None
 
+        # REGISTER STATE
+        self.register_state = {
+            "active": False,
+            "step": 0,
+            "data": {
+                "ad": None,
+                "soyad": None,
+                "okul_no": None,
+                "tc_no": None
+            }
+        }
+
 
     def extract_city(self, message: str):
         msg = message.lower()
@@ -58,6 +70,56 @@ class OrchestratorAgent:
 
     def call_register_tool(self, ad, soyad, okul_no, tc_no):
         return register_user(ad, soyad, okul_no, tc_no)
+    
+    def start_register_flow(self):
+        self.register_state["active"] = True
+        self.register_state["step"] = 1
+        return "Kayıt akışı başlatıldı. Önce adınızı alabilir miyim?"
+    
+    def handle_register_step(self, message: str):
+        step = self.register_state["step"]
+        data = self.register_state["data"]
+
+        if step == 1:
+            data["ad"] = message
+            self.register_state["step"] = 2
+            return "Soyadınızı alabilir miyim?"
+        
+        if step == 2:
+            data["soyad"] = message
+            self.register_state["step"] = 3
+            return "Okul numaranız nedir?"
+        
+        if step == 3:
+            data["okul_no"] = message
+            self.register_state["step"] = 4
+            return "TC kimlik numaranız nedir?"
+        
+        if step == 4:
+            data["tc_no"] = message
+        
+        response = register_user(
+            data["ad"],
+            data["soyad"],
+            data["okul_no"],
+            data["tc_no"]
+        )
+
+        self.reset_register_flow()
+        
+        return f"Kayıt tamamlandı: {response}"
+    
+    def reset_register_flow(self):
+        self.register_state = {
+            "active": False,
+            "step": 0,
+            "data": {
+                "ad": None,
+                "soyad": None,
+                "okul_no": None,
+                "tc_no": None
+            }
+        }
 
 
     def chat(self, message: str):
@@ -77,11 +139,14 @@ class OrchestratorAgent:
     def run(self, message: str):
         route = self.route(message)
 
+        if self.register_state["active"]:
+            return self.handle_register_step(message)
+
         if route == "weather":
             return self.call_weather_tool(message)
 
         elif route == "register":
-            return {"info": "Kayıt akışı başlatıldı, bilgileri adım adım almalıyız."}
+            return self.start_register_flow()
 
         else:
             return self.chat(message)
