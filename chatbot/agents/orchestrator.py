@@ -30,9 +30,8 @@ class OrchestratorAgent:
             },
         }
 
-    # ==========================================================
+
     # INTENT CLASSIFICATION
-    # ==========================================================
     def classify_intent(self, message: str) -> str:
         if not self.client:
             return "chat"
@@ -63,9 +62,8 @@ class OrchestratorAgent:
 
         return response.choices[0].message.content.strip().lower()
 
-    # ==========================================================
+
     # WEATHER
-    # ==========================================================
     def extract_city_llm(self, message: str):
         supported = list(CITY_COORDINATES.keys())
 
@@ -137,9 +135,8 @@ class OrchestratorAgent:
 
         return response.choices[0].message.content.strip()
 
-    # ==========================================================
+
     # REGISTER
-    # ==========================================================
     def start_register_flow(self):
         self.register_state["active"] = True
         self.register_state["step"] = 1
@@ -223,9 +220,8 @@ class OrchestratorAgent:
             },
         }
 
-    # ==========================================================
+
     # SUPPORT & CHAT
-    # ==========================================================
     def handle_support(self, message: str):
         if not self.client:
             return "Destek şu anda kullanılamıyor."
@@ -249,9 +245,8 @@ class OrchestratorAgent:
         )
         return response.choices[0].message.content
 
-    # ==========================================================
+
     # MAIN LOOP
-    # ==========================================================
     def run(self, message: str):
         # Register aktifse
         if self.register_state["active"]:
