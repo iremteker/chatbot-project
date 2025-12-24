@@ -110,29 +110,46 @@ class OrchestratorAgent:
 
     def handle_register(self, message: str):
         step = self.register_state["step"]
+        text = (message or "").strip()
+
+        def only_digits(s: str) -> bool:
+            return s.isdigit()
+        
 
         if step == "ask_name":
-            self.register_state["ad"] = message
+            if not text:
+                return "Ad alanı boş bırakılamaz. Lütfen adınızı girin."
+            self.register_state["ad"] = text
             self.register_state["step"] = "ask_surname"
+            return self.register_graph.ask_question("ask_surname")
 
-        elif step == "ask_surname":
-            self.register_state["soyad"] = message
+        if step == "ask_surname":
+            if not text:
+                return "Soyad alanı boş bırakılamaz. Lütfen soyadınızı girin."
+            self.register_state["soyad"] = text
             self.register_state["step"] = "ask_school_no"
+            return self.register_graph.ask_question("ask_school_no")
 
-        elif step == "ask_school_no":
-            self.register_state["okul_no"] = message
+        if step == "ask_school_no":
+            if not only_digits(text):
+                return "Okul numarası sadece rakamlardan oluşmalıdır. Lütfen geçerli bir okul numarası girin."
+            self.register_state["okul_no"] = int(text)
             self.register_state["step"] = "ask_tc"
+            return self.register_graph.ask_question("ask_tc")
 
-        elif step == "ask_tc":
-            self.register_state["tc_no"] = message
+        if step == "ask_tc":
+            if not only_digits(text):
+                return "TC kimlik numarası sadece rakamlardan oluşmalıdır. Lütfen geçerli bir TC kimlik numarası girin."
+            if len(text) != 11:
+                return "TC kimlik numarası 11 haneli olmalıdır. Lütfen geçerli bir TC kimlik numarası girin."
+            self.register_state["tc_no"] = int(text)
 
         # Submit
-        if all(self.register_state.values()):
             response = register_user(
                 self.register_state["ad"],
                 self.register_state["soyad"],
-                self.register_state["okul_no"],
-                self.register_state["tc_no"],
+                str(self.register_state["okul_no"]),
+                str(self.register_state["tc_no"]),
             )
             self.register_active = False
             return f"Kayıt tamamlandı: {response}"
