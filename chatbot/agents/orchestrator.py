@@ -39,19 +39,26 @@ class OrchestratorAgent:
         Kullanıcı mesajını analiz et.
 
         Intent kategorilerinden SADECE birini seç:
-        - register
-        - weather
-        - date
-        - chat
-        - support
+        - register → kullanıcı KAYIT OLMAK İSTİYORSA
+  (örn: "kayıt olmak istiyorum", "beni kaydet")
+
+        - weather → hava durumu soruyorsa
+
+        - date → bugünün tarihi / gün soruyorsa
+
+        - chat → genel bilgi, açıklama, soru
+        (örn: "kayıt işlemini ne için yapıyoruz?")
+
+        - support → yardım / destek soruları
 
         Kurallar:
+        - Bilgi alma amaçlı sorular ASLA register değildir
         - Cevabı JSON döndür
         - Açıklama yazma
 
         JSON formatı:
         {{
-          "intent": "register | weather | date | chat | support"
+          "intent": "..."
         }}
 
         Mesaj:
@@ -168,9 +175,9 @@ class OrchestratorAgent:
     def run(self, message: str):
         # Register aktifse LLM router'a SORMA
         if self.register_active:
-            if "iptal" in message.lower():
-                self.register_active = False
-                return "Kayıt iptal edildi."
+            desicion = self.llm_route(message)
+            if desicion["intent"] == "register":
+                return self.chat(message)
             return self.handle_register(message)
 
         # LLM routing
